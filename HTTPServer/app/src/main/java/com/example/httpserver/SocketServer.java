@@ -18,6 +18,12 @@ public class SocketServer extends Thread {
 	private byte[] imageBuffer;
 	private HttpServerActivity activity;
 
+	public SocketServer(HttpServerActivity activity) {
+		this.handler = activity.mHandler;
+		this.semaphore = new Semaphore(MAX_AVAILABLE, true);
+		this.activity = activity;
+	}
+
 	public SocketServer(Handler h, HttpServerActivity activity) {
 		this.handler = h;
 		this.semaphore = new Semaphore(MAX_AVAILABLE, true);

@@ -23,6 +23,10 @@ import android.graphics.ImageFormat;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.os.StrictMode;
+import android.content.ComponentName;
+import android.content.Intent;
+import android.content.ServiceConnection;
+import android.os.IBinder;
 
 public class HttpServerActivity extends Activity implements OnClickListener{
 
@@ -32,8 +36,13 @@ public class HttpServerActivity extends Activity implements OnClickListener{
 	private Camera mCamera;
 	private CameraPreview mPreview;
 	private Handler cameraHandler = new Handler();
+	private static TextView text;
 
-	private byte[] imageBuffer;
+	private static byte[] imageBuffer;
+
+	private Intent intent;
+
+	HTTPServer service;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,6 +51,7 @@ public class HttpServerActivity extends Activity implements OnClickListener{
         
         Button btn1 = (Button)findViewById(R.id.button1);
         Button btn2 = (Button)findViewById(R.id.button2);
+		text = (TextView)findViewById(R.id.logsView);
          
         btn1.setOnClickListener(this);
         btn2.setOnClickListener(this);
@@ -61,6 +71,19 @@ public class HttpServerActivity extends Activity implements OnClickListener{
 		StrictMode.setThreadPolicy(policy);
     }
 
+	private ServiceConnection connection = new ServiceConnection() {
+		@Override
+		public void onServiceConnected(ComponentName className, IBinder iBinder) {
+			service = ((HTTPServer.LocalService)iBinder).getService();
+			Log.d("server", "service connected");
+		}
+
+		@Override
+		public void onServiceDisconnected(ComponentName arg0) {
+
+		}
+	};
+
 	public String formattedSize(long bytes, boolean si) {
 		int unit = si ? 1000 : 1024;
 		if (bytes < unit) return bytes + " B";
@@ -69,11 +92,10 @@ public class HttpServerActivity extends Activity implements OnClickListener{
 		return String.format("%.1f %sB", bytes / Math.pow(unit, exp), pre);
 	}
 
-	private final Handler mHandler = new Handler() {
+	public Handler mHandler = new Handler() {
 		@Override
 		public void handleMessage(Message msg) {
 		Bundle bundle = msg.getData();
-		TextView text = (TextView)findViewById(R.id.logsView);
 
 		Date date = new Date();
 		String dateString = date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds();
@@ -92,9 +114,15 @@ public class HttpServerActivity extends Activity implements OnClickListener{
 	public void onClick(View v) {
 		// TODO Auto-generated method stub
 		if (v.getId() == R.id.button1) {
-			s = new SocketServer(mHandler, this);
-			s.start();
+			//s = new SocketServer(mHandler, this);
+			//s.start();
 			takePicture();
+
+			intent = new Intent(this, HTTPServer.class);
+			startService(intent);
+			Log.d("DEBUG", "starting service");
+			bindService(intent, connection, Context.BIND_AUTO_CREATE);
+			Log.d("DEBUG", "starting bindService");
 		}
 		if (v.getId() == R.id.button2) {
 			try {

@@ -215,11 +215,6 @@ public class ClientThread extends Thread {
 
             } else if (file.isDirectory()) {
                 Log.d("SERVER", "Directory found");
-                resultHTML += "HTTP/1.1 200 OK\r\n" +
-                        "Content-Type: text/html\r\n" +
-                        "Content-Length: " + file.length() + "\r\n" +
-                        "\r\n";
-
                 resultHTML += "<html><head><title>Index of " + fileName + "</title></head><body><h1>Index of " + fileName + "</h1>";
                 resultHTML += "<table><tr><th style=\"width:200px;\">Name</th><th style=\"width:100px;\">Type</th><th style=\"width:200px;\">Last modified</th><th style=\"width:100px;\">Size</th></tr><tr><td colspan=\"4\"><hr></td></tr><tr><td><a href=\"../\">Parent Directory</a></td><td></td><td></td><td></td></tr>";
 
@@ -237,6 +232,10 @@ public class ClientThread extends Thread {
                 }
 
                 resultHTML += foldersHTML + filesHTML + "</table></body></html>";
+                resultHTML = "HTTP/1.1 200 OK\r\n" +
+                        "Content-Type: text/html\r\n" +
+                        "Content-Length: " + resultHTML.length() + "\r\n" +
+                        "\r\n" + resultHTML;
 
                 out.write(resultHTML);
                 out.flush();
